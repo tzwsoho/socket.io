@@ -18,4 +18,6 @@ node server.js
 node client.js
 <br><br>
 
-HTML示例直接用浏览器打开就可以了，我在Google Chrome浏览器测试通过
+HTML示例直接用浏览器打开就可以了，我在PC的Edge、猎豹、Chrome浏览器均测试通过
+<br><br>
+# 移动平台上不能使用！！！
