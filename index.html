@@ -1,0 +1,72 @@
+<html>
+<head><title>socket.io</title></head>
+
+<body>
+	<button id="sendBtn">发送消息</button>
+	<button id="broadcastBtn">广播消息</button>
+	<button id="leaveBtn">离开</button><br>
+	<label>接收到的消息</label><textarea id="recv" rows=10 cols=100 readonly="readonly"></textarea><br>
+	<label>要发送的消息</label><textarea id="chat" rows=10 cols=100></textarea>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+<!-- <script src="./socket.io.js"></script> -->
+<script type="text/javascript">
+	const socket = io.connect('http://localhost:12345');
+	const send = document.getElementById('sendBtn');
+	const broadcast = document.getElementById('broadcastBtn');
+	const leave = document.getElementById('leaveBtn');
+	const chat = document.getElementById('chat');
+	const recv = document.getElementById('recv');
+
+	// 发送消息
+	send.onclick = function () {
+		socket.emit('srv_event', Date.now(), chat.value, (socket_id, obj) => {
+			recv.value = socket_id + '|' + JSON.stringify(obj);
+		});
+	};
+
+	// 广播消息
+	broadcast.onclick = function () {
+		socket.emit('broadcast_event', Date.now(), chat.value, (socket_id, obj) => {
+			recv.value = socket_id + '|' + JSON.stringify(obj);
+		});
+	};
+
+	// 关闭网页
+	leave.onclick = function () {
+		socket.emit('srv_event', Date.now(), 'Leaving!!!');
+		socket.close();
+
+		window.opener = null;
+		window.close();
+	};
+
+	socket.on('connect', function () {
+		recv.value = '已连上服务器！';
+
+		socket.on('cli_event', (socket_id, rnd_num, cb) => {
+			recv.value = socket_id + '|' + rnd_num;
+
+			if ('function' == typeof(cb)) {
+				cb(Date.now(), Math.random());
+			}
+		})
+		.on('cli_broadcast', (socket_id, obj) => {
+			recv.value = socket_id + '|' + JSON.stringify(obj);
+		});
+	})
+	.on('ping', () => {
+		recv.value = '收到服务器的 PING 命令';
+	})
+	.on('pong', (latency) => {
+		recv.value = '收到服务器 PONG 回复：' + latency + ' 毫秒';
+	})
+	.on('error', (err) => {
+		recv.value = '发生错误：' + err;
+	})
+	.on('close', () => {
+		recv.value = '服务器已关闭！';
+	});
+</script>
+</html>
